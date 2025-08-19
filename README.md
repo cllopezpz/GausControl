@@ -106,32 +106,154 @@ La interfaz web te permite:
 | `npm run watch` | Ver logs de la aplicación en tiempo real |
 | `npm run webhook` | Iniciar servidor de webhooks para auto-deploy |
 
-## 🏗️ Arquitectura del Proyecto
+## 🏗️ Arquitectura del Sistema IoT
+
+### 🔧 Funcionamiento del Sistema
+
+#### 1. **Ingesta de Datos**
+- **Vehículos IoT** publican datos de velocidad en el tópico MQTT `vehicles/speed`
+- **MQTT Broker** (Mosquitto) recibe y distribuye mensajes en tiempo real
+- **Formato de mensaje**:
+```json
+{
+  "vehicleId": "VEH001",
+  "speed": 75.5,
+  "timestamp": "2024-01-15T10:30:00Z",
+  "location": {"lat": -33.4489, "lng": -70.6693},
+  "vehicleType": "car"
+}
+```
+
+#### 2. **Procesamiento en Tiempo Real**
+- **MQTT Speed Processor** consume mensajes del tópico
+- **Validación robusta** de datos con manejo de mensajes malformados
+- **Speed Processor** aplica lógica de negocio:
+  - Detecta violaciones de velocidad (> 60 km/h)
+  - Rastrea violaciones consecutivas por vehículo
+  - Calcula estadísticas en tiempo real
+
+#### 3. **Sistema de Alertas**
+- **Alertas Simples**: Velocidad > 60 km/h
+  ```
+  🚨 ALERT: VEH001 exceeded speed at 75.5 km/h at 10:30:00
+  ```
+- **Alertas Críticas**: 3+ violaciones consecutivas
+  ```
+  🚨🚨 CRITICAL ALERT: VEH001 exceeded speed consecutively 3 times
+  ```
+- **Publicación**: Alertas se publican en `vehicles/alerts`
+- **Notificaciones**: WebSockets para updates en tiempo real
+
+#### 4. **Persistencia y Consultas**
+- **PostgreSQL**: Almacena registros de velocidad y alertas
+- **Redis**: Cache para sesiones y datos temporales
+- **APIs REST**: Consultas históricas y estadísticas
+- **WebSocket**: Notificaciones en tiempo real
+
+
+### 🏗️ Estructura del Código
 
 ```
 GausControl/
 ├── src/
-│   ├── config/          # Configuraciones (DB, Redis)
-│   ├── controllers/     # Controladores de rutas
-│   ├── models/          # Modelos de datos
-│   ├── routes/          # Definición de rutas
-│   ├── middlewares/     # Middlewares personalizados
-│   └── index.js         # Punto de entrada
-├── tests/               # Pruebas automatizadas
-├── scripts/             # Scripts de configuración
-├── database/            # Scripts de base de datos
-├── docker-compose.yml   # Configuración de servicios
-├── Dockerfile           # Imagen de la aplicación
-└── README.md           # Documentación
+│   ├── config/              # ⚙️ Configuraciones centralizadas
+│   │   ├── config.js        # Configuración principal
+│   │   ├── database.js      # Configuración PostgreSQL
+│   │   └── redis.js         # Configuración Redis
+│   │
+│   ├── services/            # 🔧 Lógica de negocio
+│   │   ├── mqttClient.js            # Cliente MQTT
+│   │   ├── mqttSpeedProcessor.js    # Procesador principal MQTT
+│   │   ├── speedProcessor.js        # Lógica de velocidad
+│   │   └── alertSystem.js           # Sistema de alertas
+│   │
+│   ├── repositories/        # 💾 Acceso a datos
+│   │   ├── baseRepository.js        # Repositorio base
+│   │   ├── speedRecordRepository.js # Datos de velocidad
+│   │   └── alertRepository.js       # Datos de alertas
+│   │
+│   ├── validators/          # ✅ Validación de datos
+│   │   ├── speedDataValidator.js    # Validador Joi (legacy)
+│   │   └── simpleSpeedValidator.js  # Validador robusto
+│   │
+│   ├── controllers/         # 🎮 Controladores API
+│   │   ├── speedController.js       # Endpoints de velocidad
+│   │   └── alertController.js       # Endpoints de alertas
+│   │
+│   ├── routes/              # 🛣️ Definición de rutas
+│   │   ├── speedRoutes.js           # Rutas de velocidad
+│   │   └── alertRoutes.js           # Rutas de alertas
+│   │
+│   └── index.js             # 🚀 Punto de entrada principal
+│
+├── database/                # 🗄️ Scripts de base de datos
+│   └── init/
+│       └── 01-schema.sql    # Schema inicial PostgreSQL
+│
+├── scripts/                 # 📜 Scripts de utilidad
+│   ├── mqtt-publisher.js    # Publicador de pruebas MQTT
+│   ├── test-valid-messages.js # Tests con mensajes válidos
+│   ├── start-dev.sh/.bat    # Scripts de inicio
+│   └── auto-update.sh/.bat  # Scripts de actualización
+│
+├── public/                  # 🌐 Interfaz web
+│   └── index.html           # Dashboard de monitoreo
+│
+├── mosquitto/               # 🦟 Configuración MQTT
+│   └── config/
+│       └── mosquitto.conf   # Configuración del broker
+│
+├── docker-compose.yml       # 🐳 Orquestación de servicios
+├── Dockerfile              # 📦 Imagen de la aplicación
+└── README.md               # 📖 Documentación
 ```
+
+### 🔄 Principios de Diseño
+
+#### SOLID Principles Implementation:
+- **Single Responsibility**: Cada clase tiene una responsabilidad específica
+- **Open/Closed**: Extensible sin modificar código existente
+- **Liskov Substitution**: Interfaces intercambiables
+- **Interface Segregation**: Interfaces específicas y focalizadas
+- **Dependency Inversion**: Dependencias a través de abstracciones
+
+#### Design Patterns:
+- **Repository Pattern**: Abstracción de acceso a datos
+- **Strategy Pattern**: Diferentes tipos de alertas
+- **Observer Pattern**: WebSockets para notificaciones
+- **Factory Pattern**: Creación de objetos validadores
+
+### 🛡️ Robustez y Manejo de Errores
+
+- **Reconexión automática** MQTT en caso de pérdida de conexión
+- **Validación robusta** de mensajes con manejo de JSON malformado
+- **Transacciones de base de datos** para consistencia
+- **Logs estructurados** para debugging y monitoreo
+- **Health checks** para todos los servicios
+- **Graceful shutdown** para cierre limpio de conexiones
+
+### 🔧 Mejoras Implementadas
+
+#### Validación de Datos Mejorada
+- **SimpleSpeedValidator**: Validador personalizado sin dependencias externas
+- **Manejo seguro de JSON**: Previene errores `SyntaxError: Unexpected token o`
+- **Campos opcionales**: Acepta valores `null` para `location` y `metadata`
+- **Tipos de vehículo flexibles**: Incluye `"unknown"` como valor válido
+
+#### Robustez del Sistema
+- **Procesamiento resiliente**: Continúa funcionando con mensajes malformados
+- **Logs informativos**: Debugging detallado solo en modo desarrollo
+- **Control de errores granular**: Cada componente maneja sus errores específicos
+- **Reinicio automático**: Docker mantiene servicios activos ante fallos
 
 ## 🌐 Servicios Incluidos
 
 | Servicio | Puerto | Descripción |
 |----------|--------|-------------|
 | **Aplicación** | 3000 | API principal de GausControl |
-| **PostgreSQL** | 5432 | Base de datos principal |
-| **Redis** | 6379 | Cache y sesiones |
+| **PostgreSQL** | 5432, 5433 | Base de datos principal |
+| **Redis** | 6379, 6380 | Cache y sesiones |
+| **MQTT Broker** | 1883, 9001 | Eclipse Mosquitto para IoT |
 | **Nginx** | 80/443 | Proxy reverso (solo producción) |
 
 ## 🔧 Desarrollo Local
@@ -297,7 +419,10 @@ docker-compose logs -f redis
 ### Comandos de Testing Disponibles
 
 ```bash
-# Enviar mensajes de prueba variados
+# ✅ Enviar mensajes VÁLIDOS para verificar funcionamiento
+npm run mqtt:valid
+
+# Enviar mensajes de prueba variados (incluye malformados)
 npm run mqtt:test
 
 # Simular tráfico continuo por 60 segundos
@@ -306,9 +431,17 @@ npm run mqtt:traffic
 # Enviar mensaje individual: VEH001 a 75 km/h
 npm run mqtt:single VEH001 75
 
-# Generar violaciones consecutivas
+# Generar violaciones consecutivas (críticas)
 npm run mqtt:violations
 ```
+
+### Recomendación de Testing
+
+**Para verificar que el sistema funciona correctamente**, utiliza:
+```bash
+npm run mqtt:valid
+```
+Este comando envía mensajes con formato correcto y genera alertas predecibles, ideal para validar el funcionamiento del sistema.
 
 ### Ejemplo de Mensaje MQTT
 
