@@ -9,7 +9,7 @@ const config = require('../config/config');
  */
 class SpeedProcessor {
   constructor(alertSystem = null, dataStore = null) {
-    this.validator = new SpeedDataValidator();
+    this.validator = new SimpleSpeedValidator();
     this.alertSystem = alertSystem; // Inyección de dependencia
     this.dataStore = dataStore; // Inyección de dependencia
     this.vehicleStates = new Map(); // Estado en memoria de vehículos
