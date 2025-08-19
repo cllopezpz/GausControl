@@ -64,6 +64,10 @@ chmod +x scripts/setup-dev.sh
 | `npm run docker:clean` | Limpiar contenedores y volúmenes |
 | `npm run docker:dev` | Modo desarrollo con hot reload |
 | `npm run docker:prod` | Modo producción |
+| `npm run update` | 🔄 **Actualización automática completa** |
+| `npm run pull-and-restart` | Actualizar imágenes y reiniciar |
+| `npm run watch` | Ver logs de la aplicación en tiempo real |
+| `npm run webhook` | Iniciar servidor de webhooks para auto-deploy |
 
 ## 🏗️ Arquitectura del Proyecto
 
@@ -169,7 +173,49 @@ JWT_SECRET=tu_jwt_secret_muy_seguro
 SESSION_SECRET=tu_session_secret_muy_seguro
 ```
 
-## 🚀 Despliegue
+## 🚀 Despliegue y Automatización
+
+### 🔄 Actualización Automática
+
+El proyecto incluye **automatización completa** para actualizar los contenedores cuando actualices el repositorio:
+
+#### Opción 1: Comando Directo (Recomendado)
+```bash
+# Un solo comando actualiza todo automáticamente
+npm run update
+```
+
+#### Opción 2: Scripts Específicos
+```bash
+# En Windows
+scripts\auto-update.bat
+
+# En Linux/macOS
+chmod +x scripts/auto-update.sh
+./scripts/auto-update.sh
+```
+
+#### Opción 3: Webhook para Auto-Deploy
+```bash
+# Iniciar servidor de webhooks (puerto 9000)
+npm run webhook
+```
+
+Luego configura el webhook en GitHub:
+1. Ve a tu repositorio → Settings → Webhooks
+2. Add webhook: `http://tu-servidor:9000/webhook`
+3. Content type: `application/json`
+4. Events: `Just the push event`
+
+### 🎯 Pipeline de CI/CD
+
+El proyecto incluye **GitHub Actions** que se ejecutan automáticamente:
+
+- ✅ **Pruebas** automáticas en cada push
+- 🔨 **Build** y push de imágenes Docker
+- 🚀 **Deploy** automático en la rama main
+- 🔒 **Escaneo de seguridad** con Trivy
+- 📊 **Reportes** detallados de despliegue
 
 ### Desarrollo
 ```bash
