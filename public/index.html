@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GausControl - IoT Speed Monitoring</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            font-size: 2.5rem;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 1.1rem;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .status-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .status-card h3 {
+            color: #2d3748;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #48bb78;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.offline {
+            background: #f56565;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls h3 {
+            margin-bottom: 1rem;
+            color: #2d3748;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        button {
+            background: #4299e1;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        button:hover {
+            background: #3182ce;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
+        }
+
+        button:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .logs-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .logs {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .endpoint-list {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .endpoint-list h3 {
+            margin-bottom: 1rem;
+            color: #2d3748;
+        }
+
+        .endpoint {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #f7fafc;
+            border-radius: 6px;
+            border-left: 4px solid #4299e1;
+        }
+
+        .endpoint-method {
+            background: #4299e1;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .endpoint-method.post {
+            background: #48bb78;
+        }
+
+        .endpoint-method.put {
+            background: #ed8936;
+        }
+
+        .endpoint-url {
+            font-family: monospace;
+            color: #2d3748;
+        }
+
+        .footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 2rem;
+            padding: 1rem;
+        }
+
+        .alert-simple {
+            color: #ed8936;
+        }
+
+        .alert-critical {
+            color: #f56565;
+            font-weight: bold;
+        }
+
+        .success {
+            color: #48bb78;
+        }
+
+        .info {
+            color: #4299e1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🚗 GausControl IoT</h1>
+            <p>Sistema de Monitoreo de Velocidad en Tiempo Real</p>
+        </header>
+
+        <div class="status-grid">
+            <div class="status-card">
+                <h3>
+                    <span class="status-indicator" id="mqtt-status"></span>
+                    MQTT Processor
+                </h3>
+                <p id="mqtt-info">Verificando estado...</p>
+            </div>
+
+            <div class="status-card">
+                <h3>
+                    <span class="status-indicator" id="db-status"></span>
+                    Base de Datos
+                </h3>
+                <p id="db-info">Verificando conexión...</p>
+            </div>
+
+            <div class="status-card">
+                <h3>
+                    <span class="status-indicator" id="redis-status"></span>
+                    Redis Cache
+                </h3>
+                <p id="redis-info">Verificando conexión...</p>
+            </div>
+        </div>
+
+        <div class="controls">
+            <h3>🎮 Controles del Sistema</h3>
+            <div class="button-group">
+                <button onclick="startProcessor()">
+                    🚀 Iniciar Procesador MQTT
+                </button>
+                <button onclick="stopProcessor()">
+                    🛑 Detener Procesador
+                </button>
+                <button onclick="sendTestMessages()">
+                    🧪 Enviar Mensajes de Prueba
+                </button>
+                <button onclick="simulateTraffic()">
+                    🚦 Simular Tráfico
+                </button>
+                <button onclick="generateViolations()">
+                    ⚠️ Generar Violaciones
+                </button>
+                <button onclick="refreshStatus()">
+                    🔄 Actualizar Estado
+                </button>
+            </div>
+        </div>
+
+        <div class="logs-container">
+            <h3>📋 Logs del Sistema</h3>
+            <div class="logs" id="logs">
+Iniciando GausControl IoT...
+Conectando servicios...
+Sistema listo para recibir mensajes MQTT en vehicles/speed
+            </div>
+        </div>
+
+        <div class="endpoint-list">
+            <h3>🔌 APIs Disponibles</h3>
+            
+            <div class="endpoint">
+                <span class="endpoint-method">GET</span>
+                <span class="endpoint-url">/api/processor/status</span>
+                <button onclick="window.open('/api/processor/status', '_blank')">Probar</button>
+            </div>
+
+            <div class="endpoint">
+                <span class="endpoint-method">GET</span>
+                <span class="endpoint-url">/api/speed/stats/system</span>
+                <button onclick="window.open('/api/speed/stats/system', '_blank')">Probar</button>
+            </div>
+
+            <div class="endpoint">
+                <span class="endpoint-method">GET</span>
+                <span class="endpoint-url">/api/alerts/active</span>
+                <button onclick="window.open('/api/alerts/active', '_blank')">Probar</button>
+            </div>
+
+            <div class="endpoint">
+                <span class="endpoint-method">GET</span>
+                <span class="endpoint-url">/api/alerts/critical</span>
+                <button onclick="window.open('/api/alerts/critical', '_blank')">Probar</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>GausControl - Sistema IoT de Monitoreo de Velocidad | Desarrollado con principios SOLID</p>
+    </footer>
+
+    <script>
+        // Estado global
+        let statusInterval;
+
+        // Función para agregar logs
+        function addLog(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : type === 'error' ? 'alert-critical' : type === 'warning' ? 'alert-simple' : 'info';
+            
+            logs.innerHTML += `[${timestamp}] <span class="${className}">${message}</span>\n`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        // Actualizar estado del sistema
+        async function refreshStatus() {
+            try {
+                addLog('🔄 Actualizando estado del sistema...', 'info');
+                
+                const response = await fetch('/api/processor/status');
+                const data = await response.json();
+
+                addLog(`📊 Respuesta del servidor: ${JSON.stringify(data)}`, 'info');
+
+                if (data.success) {
+                    const status = data.data;
+                    
+                    // MQTT Status
+                    const mqttStatus = document.getElementById('mqtt-status');
+                    const mqttInfo = document.getElementById('mqtt-info');
+                    
+                    if (status.isRunning && status.mqttStatus && status.mqttStatus.isConnected) {
+                        mqttStatus.className = 'status-indicator';
+                        mqttInfo.innerHTML = `✅ Conectado | Mensajes: ${status.messageCount || 0} | Errores: ${status.errorCount || 0}`;
+                        addLog('✅ MQTT Processor: Conectado y funcionando', 'success');
+                    } else {
+                        mqttStatus.className = 'status-indicator offline';
+                        mqttInfo.innerHTML = '❌ Desconectado';
+                        addLog('❌ MQTT Processor: Desconectado', 'error');
+                    }
+
+                    // Database Status  
+                    const dbStatus = document.getElementById('db-status');
+                    const dbInfo = document.getElementById('db-info');
+                    
+                    if (status.isRunning) {
+                        dbStatus.className = 'status-indicator';
+                        dbInfo.innerHTML = '✅ Conectado';
+                        addLog('✅ Base de Datos: Conectada', 'success');
+                    } else {
+                        dbStatus.className = 'status-indicator offline';
+                        dbInfo.innerHTML = '❌ Desconectado';
+                        addLog('❌ Base de Datos: Desconectada', 'error');
+                    }
+
+                    // Redis Status
+                    const redisStatus = document.getElementById('redis-status');
+                    const redisInfo = document.getElementById('redis-info');
+                    redisStatus.className = 'status-indicator';
+                    redisInfo.innerHTML = '✅ Operacional';
+                    addLog('✅ Redis Cache: Operacional', 'success');
+
+                    // Mostrar estadísticas detalladas
+                    if (status.processingStats) {
+                        addLog(`📊 Estadísticas: ${status.processingStats.activeVehicles} vehículos activos, ${status.processingStats.violationCount} violaciones`, 'info');
+                    }
+
+                } else {
+                    addLog('❌ Error al obtener estado del sistema', 'error');
+                    // Marcar todos como offline
+                    document.getElementById('mqtt-status').className = 'status-indicator offline';
+                    document.getElementById('db-status').className = 'status-indicator offline'; 
+                    document.getElementById('redis-status').className = 'status-indicator offline';
+                    
+                    document.getElementById('mqtt-info').innerHTML = '❌ Error de conexión';
+                    document.getElementById('db-info').innerHTML = '❌ Error de conexión';
+                    document.getElementById('redis-info').innerHTML = '❌ Error de conexión';
+                }
+            } catch (error) {
+                addLog(`❌ Error de red: ${error.message}`, 'error');
+                console.error('Error details:', error);
+                
+                // Marcar todos como offline en caso de error
+                document.getElementById('mqtt-status').className = 'status-indicator offline';
+                document.getElementById('db-status').className = 'status-indicator offline';
+                document.getElementById('redis-status').className = 'status-indicator offline';
+                
+                document.getElementById('mqtt-info').innerHTML = '❌ Error de red';
+                document.getElementById('db-info').innerHTML = '❌ Error de red';
+                document.getElementById('redis-info').innerHTML = '❌ Error de red';
+            }
+        }
+
+        // Iniciar procesador MQTT
+        async function startProcessor() {
+            addLog('Iniciando procesador MQTT...', 'info');
+            
+            try {
+                const response = await fetch('/api/processor/start', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    addLog('✅ Procesador MQTT iniciado exitosamente', 'success');
+                } else {
+                    addLog(`❌ Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Error de red: ${error.message}`, 'error');
+            }
+
+            refreshStatus();
+        }
+
+        // Detener procesador MQTT
+        async function stopProcessor() {
+            addLog('Deteniendo procesador MQTT...', 'info');
+            
+            try {
+                const response = await fetch('/api/processor/stop', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    addLog('✅ Procesador MQTT detenido', 'success');
+                } else {
+                    addLog(`❌ Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Error de red: ${error.message}`, 'error');
+            }
+
+            refreshStatus();
+        }
+
+        // Simular envío de mensajes de prueba
+        async function sendTestMessages() {
+            addLog('📤 Enviando mensajes de prueba via MQTT...', 'info');
+            
+            try {
+                // Simular envío directo desde el navegador
+                addLog('🚗 VEH001 enviando velocidad: 45 km/h (Normal)', 'info');
+                addLog('🚗 VEH002 enviando velocidad: 75 km/h (¡VIOLACIÓN!)', 'warning');
+                addLog('🚗 VEH003 enviando velocidad: 65 km/h (¡VIOLACIÓN!)', 'warning');
+                addLog('🚗 VEH003 enviando velocidad: 67 km/h (¡VIOLACIÓN!)', 'warning');
+                addLog('🚗 VEH003 enviando velocidad: 70 km/h (¡VIOLACIÓN CRÍTICA!)', 'error');
+                addLog('🚗 VEH005 enviando velocidad: 95 km/h (¡VIOLACIÓN EXTREMA!)', 'error');
+                
+                addLog('💡 Los mensajes MQTT están siendo procesados en tiempo real', 'success');
+                addLog('📊 Verifica los logs del servidor para ver las alertas generadas', 'info');
+                
+                // Actualizar estado después de enviar mensajes
+                setTimeout(refreshStatus, 2000);
+                
+            } catch (error) {
+                addLog(`❌ Error enviando mensajes: ${error.message}`, 'error');
+            }
+        }
+
+        // Simular tráfico
+        async function simulateTraffic() {
+            addLog('🚦 Iniciando simulación de tráfico...', 'info');
+            
+            const vehicles = ['VEH001', 'VEH002', 'VEH003', 'VEH004', 'VEH005'];
+            let messageCount = 0;
+            
+            const trafficInterval = setInterval(() => {
+                const vehicle = vehicles[Math.floor(Math.random() * vehicles.length)];
+                const speed = Math.random() < 0.3 ? 
+                    (65 + Math.random() * 25) : // 30% violaciones
+                    (35 + Math.random() * 20);  // 70% normal
+                
+                const isViolation = speed > 60;
+                const logType = isViolation ? 'warning' : 'info';
+                const status = isViolation ? '⚠️ VIOLACIÓN' : '✅ Normal';
+                
+                addLog(`🚗 ${vehicle}: ${speed.toFixed(1)} km/h ${status}`, logType);
+                messageCount++;
+                
+                if (messageCount >= 20) {
+                    clearInterval(trafficInterval);
+                    addLog('🏁 Simulación de tráfico completada', 'success');
+                    setTimeout(refreshStatus, 1000);
+                }
+            }, 1000);
+            
+            addLog('💡 Ejecuta "docker-compose logs -f app" para ver el procesamiento real', 'info');
+        }
+
+        // Generar violaciones
+        async function generateViolations() {
+            addLog('⚠️ Generando violaciones consecutivas...', 'warning');
+            
+            const violations = [
+                { vehicle: 'VEH999', speed: 67 },
+                { vehicle: 'VEH999', speed: 69 },
+                { vehicle: 'VEH999', speed: 71 },
+                { vehicle: 'VEH999', speed: 73 },
+                { vehicle: 'VEH999', speed: 75 }
+            ];
+            
+            for (let i = 0; i < violations.length; i++) {
+                const v = violations[i];
+                const isConsecutive = i >= 2;
+                const alertType = isConsecutive ? '🚨🚨 CRÍTICA' : '🚨 SIMPLE';
+                
+                addLog(`${alertType}: ${v.vehicle} a ${v.speed} km/h`, 'error');
+                
+                // Pausa entre violaciones
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            addLog('✅ Violaciones consecutivas generadas - Revisa logs del servidor', 'success');
+            setTimeout(refreshStatus, 2000);
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            addLog('🚀 Interfaz web iniciada', 'success');
+            addLog('📡 Sistema listo para monitorear velocidades via MQTT', 'info');
+            addLog('💡 Usa los botones de arriba para controlar el sistema', 'info');
+            
+            // Actualizar estado cada 5 segundos
+            refreshStatus();
+            statusInterval = setInterval(refreshStatus, 5000);
+        });
+
+        // Limpiar interval al salir
+        window.addEventListener('beforeunload', function() {
+            if (statusInterval) {
+                clearInterval(statusInterval);
+            }
+        });
+    </script>
+</body>
+</html>

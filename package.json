@@ -19,7 +19,14 @@
     "update": "node -e \"require('child_process').spawn(process.platform === 'win32' ? 'scripts\\\\auto-update.bat' : 'scripts/auto-update.sh', [], {stdio: 'inherit', shell: true})\"",
     "pull-and-restart": "docker-compose pull && docker-compose up -d --force-recreate",
     "watch": "docker-compose logs -f app",
-    "webhook": "node scripts/webhook-server.js"
+    "webhook": "node scripts/webhook-server.js",
+    "mqtt:test": "node scripts/mqtt-publisher.js test",
+    "mqtt:traffic": "node scripts/mqtt-publisher.js traffic",
+    "mqtt:single": "node scripts/mqtt-publisher.js single",
+    "mqtt:violations": "node scripts/mqtt-publisher.js violations",
+    "mqtt:valid": "node scripts/test-valid-messages.js",
+    "start:dev": "node -e \"require('child_process').spawn(process.platform === 'win32' ? 'scripts\\\\start-dev.bat' : 'scripts/start-dev.sh', [], {stdio: 'inherit', shell: true})\"",
+    "setup": "npm run start:dev"
   },
   "keywords": [
     "control",
@@ -35,7 +42,10 @@
     "dotenv": "^16.3.1",
     "helmet": "^7.1.0",
     "pg": "^8.11.3",
-    "redis": "^4.6.10"
+    "redis": "^4.6.10",
+    "mqtt": "^5.3.4",
+    "joi": "^17.11.0",
+    "socket.io": "^4.7.4"
   },
   "devDependencies": {
     "nodemon": "^3.0.1",

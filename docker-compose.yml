@@ -14,9 +14,20 @@ services:
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
+      - DB_HOST=database
+      - DB_PORT=5432
+      - DB_NAME=gaus_control
+      - DB_USER=gaus_user
+      - DB_PASSWORD=gaus_password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MQTT_BROKER=mosquitto
+      - MQTT_PORT=1883
+      - AUTO_START_PROCESSOR=true
     depends_on:
       - database
       - redis
+      - mosquitto
     networks:
       - gaus-network
     restart: unless-stopped
@@ -50,6 +61,21 @@ services:
       - gaus-network
     restart: unless-stopped
 
+  # Broker MQTT para IoT
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: gaus-control-mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_logs:/mosquitto/log
+    networks:
+      - gaus-network
+    restart: unless-stopped
+
   # Nginx como proxy reverso (opcional para producción)
   nginx:
     image: nginx:alpine
@@ -71,6 +97,8 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  mosquitto_data:
+  mosquitto_logs:
 
 networks:
   gaus-network:

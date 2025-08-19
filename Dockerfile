@@ -1,6 +1,9 @@
 # Multi-stage build para optimizar el tamaño final
 FROM node:18-alpine AS development
 
+# Instalar dependencias del sistema
+RUN apk add --no-cache dumb-init
+
 # Establecer directorio de trabajo
 WORKDIR /app
 
@@ -13,14 +16,24 @@ RUN npm ci
 # Copiar código fuente
 COPY . .
 
+# Crear directorios necesarios
+RUN mkdir -p logs
+
+# Cambiar permisos
+RUN chown -R node:node /app
+USER node
+
 # Exponer puerto
 EXPOSE 3000
 
 # Comando por defecto para desarrollo
-CMD ["npm", "run", "dev"]
+CMD ["dumb-init", "npm", "run", "dev"]
 
 # Etapa de producción
 FROM node:18-alpine AS production
+
+# Instalar dependencias del sistema
+RUN apk add --no-cache dumb-init
 
 WORKDIR /app
 
@@ -28,21 +41,20 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instalar solo dependencias de producción
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --omit=dev && npm cache clean --force
 
 # Copiar código fuente
 COPY . .
 
-# Crear usuario no-root para seguridad
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
+# Crear directorios necesarios
+RUN mkdir -p logs
 
 # Cambiar permisos
-RUN chown -R nextjs:nodejs /app
-USER nextjs
+RUN chown -R node:node /app
+USER node
 
 # Exponer puerto
 EXPOSE 3000
 
 # Comando para producción
-CMD ["npm", "start"]
+CMD ["dumb-init", "npm", "start"]

@@ -1,6 +1,18 @@
-# GausControl 🚀
+# GausControl - IoT Speed Monitoring System 🚀
 
-Proyecto de control y gestión desarrollado con Node.js, Docker Desktop y GitHub Desktop.
+Sistema de monitoreo de velocidad en tiempo real usando MQTT, con alertas automáticas y APIs REST para consultas.
+
+## 🎯 Características Principales
+
+- **Consumo MQTT en tiempo real** del tópico `vehicles/speed`
+- **Alertas automáticas**:
+  - Alerta simple: cuando velocidad > 60 km/h
+  - Alerta crítica: 3+ violaciones consecutivas
+- **Manejo robusto** de mensajes malformados y pérdida de conexión
+- **APIs REST** para consultas históricas
+- **Publicación de alertas** en tópico `vehicles/alerts`
+- **Base de datos PostgreSQL** para persistencia
+- **WebSockets** para notificaciones en tiempo real
 
 ## 📋 Requisitos Previos
 
@@ -15,18 +27,43 @@ Antes de comenzar, asegúrate de tener instalado:
 
 ### Opción 1: Configuración Automática (Recomendada)
 
-#### En Windows:
 ```bash
-# Ejecutar el script de configuración
-scripts\setup-dev.bat
+# Un solo comando para iniciar todo el entorno
+npm run setup
+
+# O alternativamente:
+npm run start:dev
 ```
 
-#### En Linux/macOS:
+Esto ejecutará automáticamente:
+- ✅ Verificación de Docker
+- 🔨 Construcción de imágenes  
+- 🚀 Inicio de todos los servicios
+- 🌐 Apertura del navegador en http://localhost:3000
+
+#### Scripts Específicos por Plataforma:
+
+**Windows:**
 ```bash
-# Dar permisos de ejecución y ejecutar
-chmod +x scripts/setup-dev.sh
-./scripts/setup-dev.sh
+scripts\start-dev.bat
 ```
+
+**Linux/macOS:**
+```bash
+chmod +x scripts/start-dev.sh
+./scripts/start-dev.sh
+```
+
+### 🌐 Interfaz Web
+
+Una vez iniciado, abre tu navegador en:
+**http://localhost:3000**
+
+La interfaz web te permite:
+- 📊 Monitorear estado del sistema en tiempo real
+- 🎮 Controlar el procesador MQTT
+- 📋 Ver logs del sistema
+- 🔌 Probar APIs disponibles
 
 ### Opción 2: Configuración Manual
 
@@ -255,6 +292,75 @@ docker-compose logs -f database
 docker-compose logs -f redis
 ```
 
+## 📡 Testing del Sistema MQTT
+
+### Comandos de Testing Disponibles
+
+```bash
+# Enviar mensajes de prueba variados
+npm run mqtt:test
+
+# Simular tráfico continuo por 60 segundos
+npm run mqtt:traffic
+
+# Enviar mensaje individual: VEH001 a 75 km/h
+npm run mqtt:single VEH001 75
+
+# Generar violaciones consecutivas
+npm run mqtt:violations
+```
+
+### Ejemplo de Mensaje MQTT
+
+```json
+{
+  "vehicleId": "VEH001",
+  "speed": 75.5,
+  "timestamp": "2024-01-15T10:30:00Z",
+  "location": {
+    "latitude": -33.4489,
+    "longitude": -70.6693
+  },
+  "vehicleType": "car",
+  "metadata": {
+    "test": true
+  }
+}
+```
+
+### Alertas Esperadas
+
+#### Alerta Simple (speed > 60)
+```
+🚨 ALERT: VEH001 exceeded speed at 75.5 km/h at 10:30:00
+```
+
+#### Alerta Crítica (3+ consecutivas)
+```
+🚨🚨 CRITICAL ALERT: VEH001 exceeded speed consecutively 3 times
+```
+
+## 🔌 APIs REST Disponibles
+
+### Speed Endpoints
+- `GET /api/speed/vehicle/:vehicleId` - Registros por vehículo
+- `GET /api/speed/range?startDate=&endDate=` - Registros por fecha
+- `GET /api/speed/violations` - Solo violaciones
+- `GET /api/speed/stats/system` - Estadísticas generales
+- `GET /api/speed/stats/vehicle/:vehicleId` - Stats por vehículo
+
+### Alert Endpoints
+- `GET /api/alerts/active` - Alertas activas
+- `GET /api/alerts/critical` - Alertas críticas
+- `GET /api/alerts/vehicle/:vehicleId` - Alertas por vehículo
+- `GET /api/alerts/stats` - Estadísticas de alertas
+- `PUT /api/alerts/:alertId/status` - Actualizar estado
+
+### System Control
+- `POST /api/processor/start` - Iniciar procesador MQTT
+- `POST /api/processor/stop` - Detener procesador
+- `GET /api/processor/status` - Estado del sistema
+
 ## 🤝 Contribuir
 
 1. Fork el proyecto
@@ -277,4 +383,3 @@ Si tienes problemas:
 
 ---
 
-**Desarrollado con ❤️ por el equipo de GausControl**
