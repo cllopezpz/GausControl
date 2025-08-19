@@ -1,5 +1,5 @@
 const SpeedRecordRepository = require('../repositories/speedRecordRepository');
-const SpeedDataValidator = require('../validators/speedDataValidator');
+const SimpleSpeedValidator = require('../validators/simpleSpeedValidator');
 
 /**
  * Controlador para endpoints de velocidad
@@ -9,7 +9,7 @@ const SpeedDataValidator = require('../validators/speedDataValidator');
 class SpeedController {
   constructor() {
     this.speedRepository = new SpeedRecordRepository();
-    this.validator = new SpeedDataValidator();
+    this.validator = new SimpleSpeedValidator();
   }
 
   /**
