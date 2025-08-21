@@ -36,7 +36,7 @@ npm run start:dev
 ```
 
 Esto ejecutará automáticamente:
-- ✅ Verificación de Docker
+- �?Verificación de Docker
 - 🔨 Construcción de imágenes  
 - 🚀 Inicio de todos los servicios
 - 🌐 Apertura del navegador en http://localhost:3000
@@ -106,7 +106,7 @@ La interfaz web te permite:
 | `npm run watch` | Ver logs de la aplicación en tiempo real |
 | `npm run webhook` | Iniciar servidor de webhooks para auto-deploy |
 
-## 🏗️ Arquitectura del Sistema IoT
+## 🏗�?Arquitectura del Sistema IoT
 
 ### 🔧 Funcionamiento del Sistema
 
@@ -151,59 +151,48 @@ La interfaz web te permite:
 - **WebSocket**: Notificaciones en tiempo real
 
 
-### 🏗️ Estructura del Código
+### 🏗�?Estructura del Código
 
 ```
 GausControl/
 ├── src/
-│   ├── config/              # ⚙️ Configuraciones centralizadas
-│   │   ├── config.js        # Configuración principal
-│   │   ├── database.js      # Configuración PostgreSQL
-│   │   └── redis.js         # Configuración Redis
-│   │
-│   ├── services/            # 🔧 Lógica de negocio
-│   │   ├── mqttClient.js            # Cliente MQTT
-│   │   ├── mqttSpeedProcessor.js    # Procesador principal MQTT
-│   │   ├── speedProcessor.js        # Lógica de velocidad
-│   │   └── alertSystem.js           # Sistema de alertas
-│   │
-│   ├── repositories/        # 💾 Acceso a datos
-│   │   ├── baseRepository.js        # Repositorio base
-│   │   ├── speedRecordRepository.js # Datos de velocidad
-│   │   └── alertRepository.js       # Datos de alertas
-│   │
-│   ├── validators/          # ✅ Validación de datos
-│   │   ├── speedDataValidator.js    # Validador Joi (legacy)
-│   │   └── simpleSpeedValidator.js  # Validador robusto
-│   │
-│   ├── controllers/         # 🎮 Controladores API
-│   │   ├── speedController.js       # Endpoints de velocidad
-│   │   └── alertController.js       # Endpoints de alertas
-│   │
-│   ├── routes/              # 🛣️ Definición de rutas
-│   │   ├── speedRoutes.js           # Rutas de velocidad
-│   │   └── alertRoutes.js           # Rutas de alertas
-│   │
-│   └── index.js             # 🚀 Punto de entrada principal
-│
-├── database/                # 🗄️ Scripts de base de datos
-│   └── init/
-│       └── 01-schema.sql    # Schema inicial PostgreSQL
-│
-├── scripts/                 # 📜 Scripts de utilidad
-│   ├── mqtt-publisher.js    # Publicador de pruebas MQTT
-│   ├── test-valid-messages.js # Tests con mensajes válidos
-│   ├── start-dev.sh/.bat    # Scripts de inicio
-│   └── auto-update.sh/.bat  # Scripts de actualización
-│
-├── public/                  # 🌐 Interfaz web
-│   └── index.html           # Dashboard de monitoreo
-│
-├── mosquitto/               # 🦟 Configuración MQTT
-│   └── config/
-│       └── mosquitto.conf   # Configuración del broker
-│
-├── docker-compose.yml       # 🐳 Orquestación de servicios
+�?  ├── config/              # ⚙️ Configuraciones centralizadas
+�?  �?  ├── config.js        # Configuración principal
+�?  �?  ├── database.js      # Configuración PostgreSQL
+�?  �?  └── redis.js         # Configuración Redis
+�?  �?�?  ├── services/            # 🔧 Lógica de negocio
+�?  �?  ├── mqttClient.js            # Cliente MQTT
+�?  �?  ├── mqttSpeedProcessor.js    # Procesador principal MQTT
+�?  �?  ├── speedProcessor.js        # Lógica de velocidad
+�?  �?  └── alertSystem.js           # Sistema de alertas
+�?  �?�?  ├── repositories/        # 💾 Acceso a datos
+�?  �?  ├── baseRepository.js        # Repositorio base
+�?  �?  ├── speedRecordRepository.js # Datos de velocidad
+�?  �?  └── alertRepository.js       # Datos de alertas
+�?  �?�?  ├── validators/          # �?Validación de datos
+�?  �?  ├── speedDataValidator.js    # Validador Joi (legacy)
+�?  �?  └── simpleSpeedValidator.js  # Validador robusto
+�?  �?�?  ├── controllers/         # 🎮 Controladores API
+�?  �?  ├── speedController.js       # Endpoints de velocidad
+�?  �?  └── alertController.js       # Endpoints de alertas
+�?  �?�?  ├── routes/              # 🛣�?Definición de rutas
+�?  �?  ├── speedRoutes.js           # Rutas de velocidad
+�?  �?  └── alertRoutes.js           # Rutas de alertas
+�?  �?�?  └── index.js             # 🚀 Punto de entrada principal
+�?├── database/                # 🗄�?Scripts de base de datos
+�?  └── init/
+�?      └── 01-schema.sql    # Schema inicial PostgreSQL
+�?├── scripts/                 # 📜 Scripts de utilidad
+�?  ├── mqtt-publisher.js    # Publicador de pruebas MQTT
+�?  ├── test-valid-messages.js # Tests con mensajes válidos
+�?  ├── start-dev.sh/.bat    # Scripts de inicio
+�?  └── auto-update.sh/.bat  # Scripts de actualización
+�?├── public/                  # 🌐 Interfaz web
+�?  └── index.html           # Dashboard de monitoreo
+�?├── mosquitto/               # 🦟 Configuración MQTT
+�?  └── config/
+�?      └── mosquitto.conf   # Configuración del broker
+�?├── docker-compose.yml       # 🐳 Orquestación de servicios
 ├── Dockerfile              # 📦 Imagen de la aplicación
 └── README.md               # 📖 Documentación
 ```
@@ -223,7 +212,7 @@ GausControl/
 - **Observer Pattern**: WebSockets para notificaciones
 - **Factory Pattern**: Creación de objetos validadores
 
-### 🛡️ Robustez y Manejo de Errores
+### 🛡�?Robustez y Manejo de Errores
 
 - **Reconexión automática** MQTT en caso de pérdida de conexión
 - **Validación robusta** de mensajes con manejo de JSON malformado
@@ -361,7 +350,7 @@ npm run webhook
 ```
 
 Luego configura el webhook en GitHub:
-1. Ve a tu repositorio → Settings → Webhooks
+1. Ve a tu repositorio �?Settings �?Webhooks
 2. Add webhook: `http://tu-servidor:9000/webhook`
 3. Content type: `application/json`
 4. Events: `Just the push event`
@@ -370,7 +359,7 @@ Luego configura el webhook en GitHub:
 
 El proyecto incluye **GitHub Actions** que se ejecutan automáticamente:
 
-- ✅ **Pruebas** automáticas en cada push
+- �?**Pruebas** automáticas en cada push
 - 🔨 **Build** y push de imágenes Docker
 - 🚀 **Deploy** automático en la rama main
 - 🔒 **Escaneo de seguridad** con Trivy
@@ -386,7 +375,7 @@ npm run docker:dev
 npm run docker:prod
 ```
 
-## 🛠️ Troubleshooting
+## 🛠�?Troubleshooting
 
 ### Problemas Comunes
 
@@ -419,7 +408,7 @@ docker-compose logs -f redis
 ### Comandos de Testing Disponibles
 
 ```bash
-# ✅ Enviar mensajes VÁLIDOS para verificar funcionamiento
+# �?Enviar mensajes VÁLIDOS para verificar funcionamiento
 npm run mqtt:valid
 
 # Enviar mensajes de prueba variados (incluye malformados)
@@ -473,46 +462,6 @@ Este comando envía mensajes con formato correcto y genera alertas predecibles, 
 🚨🚨 CRITICAL ALERT: VEH001 exceeded speed consecutively 3 times
 ```
 
-## 🔌 APIs REST Disponibles
-
-### Speed Endpoints
-- `GET /api/speed/vehicle/:vehicleId` - Registros por vehículo
-- `GET /api/speed/range?startDate=&endDate=` - Registros por fecha
-- `GET /api/speed/violations` - Solo violaciones
-- `GET /api/speed/stats/system` - Estadísticas generales
-- `GET /api/speed/stats/vehicle/:vehicleId` - Stats por vehículo
-
-### Alert Endpoints
-- `GET /api/alerts/active` - Alertas activas
-- `GET /api/alerts/critical` - Alertas críticas
-- `GET /api/alerts/vehicle/:vehicleId` - Alertas por vehículo
-- `GET /api/alerts/stats` - Estadísticas de alertas
-- `PUT /api/alerts/:alertId/status` - Actualizar estado
-
-### System Control
-- `POST /api/processor/start` - Iniciar procesador MQTT
-- `POST /api/processor/stop` - Detener procesador
-- `GET /api/processor/status` - Estado del sistema
-
-## 🤝 Contribuir
-
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/nueva-funcionalidad`)
-3. Commit tus cambios (`git commit -m 'Agregar nueva funcionalidad'`)
-4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
-5. Abre un Pull Request
-
-## 📝 Licencia
-
-Este proyecto está bajo la Licencia MIT. Ver `LICENSE` para más detalles.
-
-## 🆘 Soporte
-
-Si tienes problemas:
-
-1. Revisa la sección de [Troubleshooting](#🛠️-troubleshooting)
-2. Busca en los [Issues](../../issues) existentes
-3. Crea un nuevo [Issue](../../issues/new) si no encuentras solución
 
 ---
 
